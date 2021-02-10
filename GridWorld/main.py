@@ -75,14 +75,14 @@ if __name__ == "__main__":
     parser.add_argument("--num_ep", type=int, default=50000)
     parser.add_argument("--method", type=to_str, default='mc')
 
-    arg = parser.parse_args()
+    args = parser.parse_args()
 
     # Set hyper-parameters
-    gamma = arg.gamma #
-    alpha = arg.alpha
-    map_size = arg.map_size
-    num_ep = arg.num_ep # 에피소드 진행 횟수
-    method = arg.method
+    gamma = args.gamma #
+    alpha = args.alpha
+    map_size = args.map_size
+    num_ep = args.num_ep # 에피소드 진행 횟수
+    method = args.method
 
     env = GridWorld()
     agent = Agent()
