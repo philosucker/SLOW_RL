@@ -1,20 +1,26 @@
+import argparse
 import numpy as np
 from agent import Agent
 from env import GridWorld
 
+def to_str(x):
+    if x.lower() == 'mc':
+        return 'mc'
+    elif x.lower() == 'td':
+        return 'td'
+    else:
+        raise argparse.ArgumentTypeError("you got mc or td")
 
-def main():
-    env = GridWorld()
-    agent = Agent()
-    data = np.zeros((4, 4))
-    gamma = 1.0
-    alpha = 0.0001
+def mc(data, gamma, alpha, num_ep):
+    data = data
+    gamma = gamma
+    alpha = alpha
 
-    # 5만번 에피소드
-    for k in range(50000):
+    # num_ep번 에피소드
+    for k in range(num_ep):
         done = False
         history = []
-        # 3,3 에 도달할때까지 계속 실행
+        # (map_size-1, map_size-1) 에 도달할때까지 계속 실행
         while not done:
             # action이 선택됨
             action = agent.select_action()
@@ -36,6 +42,55 @@ def main():
     for row in data:
         print(row)
 
+def td(data, gamma, alpha, num_ep):
+    data = data
+    gamma = gamma
+    alpha = alpha
+
+    # num_ep번 에피소드
+    for k in range(num_ep):
+        done = False
+        while not done:
+            x, y = env.get_state()
+            action = agent.select_action()
+            (x_prime, y_prime), reward, done = env.step(action)
+            x_prime, y_prime = env.get_state()
+
+            # 한 번의 step이 진행되면 바로 테이블의 데이터를 업데이트
+            data[x][y] = data[x][y] + alpha*(reward+gamma*data[x_prime][y_prime]-\
+                                             data[x][y])
+
+        # 한 에피소드가 종료되었으니 환경 설정을 초기세팅으로 돌림
+        env.reset()
+
+    # 학습 결과를 출력
+    for row in data:
+        print(row)
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--gamma", type=float, default=1.0)
+    parser.add_argument("--alpha", type=float, default=0.0001)
+    parser.add_argument("--map_size", type=int, default=4)
+    parser.add_argument("--num_ep", type=int, default=50000)
+    parser.add_argument("--method", type=to_str, default='mc')
+
+    arg = parser.parse_args()
+
+    # Set hyper-parameters
+    gamma = arg.gamma #
+    alpha = arg.alpha
+    map_size = arg.map_size
+    num_ep = arg.num_ep # 에피소드 진행 횟수
+    method = arg.method
+
+    env = GridWorld()
+    agent = Agent()
+
+    data = np.zeros((map_size, map_size))
+
+    if method == 'mc':
+        mc(data, gamma, alpha, num_ep)
+    elif method == 'td':
+        print(data, gamma, alpha, num_ep, method)
+        td(data, gamma, alpha, num_ep)
